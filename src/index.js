@@ -1,60 +1,54 @@
-import { createStore, combineReducers } from "redux";
+import { createStore, applyMiddleware} from "redux";
+import thunk from 'redux-thunk'
 
-const userReducer = ( state = {id: 1}, action) => {
+const initialState = {
+  loading: false,
+  loaded: false,
+  posts: [],
+  error: null
+};
+
+const middleWare = applyMiddleware( thunk );
+
+const reducer = ( state, action) => {
   switch(action.type){
-    case "USER_NAME": {
-      state = { ...state, name: action.payload }
-      break
+    case "LOADING": {
+      state = { ...state, loading: true }
+      break;
     } 
-    case "USER_AGE": {
-      state = { ...state, age: action.payload }
-      break
+    case "LOADED": {
+      state = { ...state, loaded: true, loading: false, posts: action.payload }
+      break;
+    }
+    case "ERROR": {
+      state = { ...state,  loading: false, error: action.payload }
+      break;
     }
   }
   return state;
 };
 
-const jobProfileReducer = (state = {}, action) => {
-  switch(action.type){
-    case "JOB_DETAIL": {
-      state = { ...state, job: action.payload }
-      break
-    } 
-  }
-  return state;
 
-}
-const reducers = combineReducers({
-  user : userReducer,
-  jobProfile : jobProfileReducer
-})
-
-const store = createStore( reducers );
+const store = createStore( reducer, initialState, middleWare  );
 
 store.subscribe( () => {
   console.warn('My store has changed ', store.getState());
 });
 
-function getUsername(){
-  return {
-    type: 'USER_NAME',
-    payload: 'John'
-  }
-}
-function getUserAge(){
-  return {
-    type: 'USER_AGE',
-    payload: 24
-  }
-}
 
-function getJobDetail () {
-  return {
-    type: 'JOB_DETAIL',
-    payload: 'Product developer'
-  }
-}
 
-store.dispatch(getUsername())
-store.dispatch(getUserAge())
-store.dispatch(getJobDetail())
+const getPostsData = (dispatch) => {
+  dispatch( {
+    type: "LOADING"    
+  })
+  fetch('https://jsonplaceholder.typicode.com/posts')
+  .then(response => response.json())
+  .then(data => {
+    dispatch({type: 'LOADED', payload: data})
+  })
+  .catch(err => {
+    dispatch({type: 'ERROR', err})
+  })
+} 
+
+store.dispatch(getPostsData)
