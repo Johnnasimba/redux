@@ -1,5 +1,6 @@
 import { createStore, applyMiddleware} from "redux";
-import thunk from 'redux-thunk'
+import thunk from 'redux-thunk';
+import logger from 'redux-logger';
 
 const initialState = {
   loading: false,
@@ -8,7 +9,7 @@ const initialState = {
   error: null
 };
 
-const middleWare = applyMiddleware( thunk );
+const middleWare = applyMiddleware( thunk, logger );
 
 const reducer = ( state, action) => {
   switch(action.type){
@@ -30,12 +31,6 @@ const reducer = ( state, action) => {
 
 
 const store = createStore( reducer, initialState, middleWare  );
-
-store.subscribe( () => {
-  console.warn('My store has changed ', store.getState());
-});
-
-
 
 const getPostsData = (dispatch) => {
   dispatch( {
